@@ -88,6 +88,18 @@
       "created_at": "2026-11-21T21:52:58.138Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "1eb508c0-da29-42b4-af6a-809610f14f56",
+      "role": "agent",
+      "content": "### 🚀 Your App is Already Live!\n\nYour app is **already deployed and accessible right now** at:\n👉 **[Open Live IronPulse Gym App](https://antigravity.luch.dev/site/e59bc8bc-72b3-4d63-b290-801a225b4b51/f2b44e3bc512033f5ac68a89/)**\n\nAny changes made here update this link automatically.\n\n---\n\n### 🌐 Deploying to Your Own Domain or Platform\n\nBecause this app is built with static web technologies ([index.html](file:///home/agent/workspace/index.html), [css/style.css](file:///home/agent/workspace/css/style.css), and [js/app.js](file:///home/agent/workspace/js/app.js)), it requires zero build steps or database configuration and can be hosted anywhere for free.\n\n#### Step 1: Connect to GitHub\nTap the **GitHub mark at the top of the chat** to connect your GitHub account. Your entire project history and files will be automatically transferred to your new repository.\n\n#### Step 2: Choose a Free Hosting Provider\n\n1. **GitHub Pages (Easiest)**:\n   - Go to your repository on GitHub.\n   - Click **Settings** > **Pages** (in the left sidebar).\n   - Under **Build and deployment > Branch**, select `main` and `/ (root)`, then click **Save**.\n   - Your site will be live at `https://<your-username>.github.io/<repo-name>/`.\n\n2. **Vercel**:\n   - Go to [vercel.com](https://vercel.com) and log in with GitHub.\n   - Click **Add New Project** and select your gym app repository.\n   - Click **Deploy** (no build settings required).\n\n3. **Netlify**:\n   - Go to [netlify.com](https://netlify.com) and log in with GitHub.\n   - Click **Add new site** > **Import an existing project**.\n   - Select your repository and click **Deploy Site**.\n\n4. **Self-Hosted / cPanel / Apache / Nginx**:\n   - Simply copy the contents of this folder ([index.html](file:///home/agent/workspace/index.html), [css/style.css](file:///home/agent/workspace/css/style.css), and [js/app.js](file:///home/agent/workspace/js/app.js)) into your server's `public_html` or web root directory.",
+      "status": "completed",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "44c51b16-fc8f-4828-8f26-db26354f87ee",
+      "created_at": "2026-11-21T21:53:15.832Z",
+      "sender": "macOS",
+      "is_cancelled": false
     }
   ]
 }
