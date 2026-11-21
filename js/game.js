@@ -1004,7 +1004,7 @@ class EndlessRunnerGame {
         for (let i = 0; i < this.trackChunks.length; i++) {
             const chunk = this.trackChunks[i];
             // If chunk is safely behind player, recycle to front
-            if (chunk.position.z > this.playerZ + 35) {
+            if (chunk.position.z > this.playerZ + 55) {
                 // Find front-most chunk Z
                 let frontZ = this.playerZ;
                 this.trackChunks.forEach(c => {
