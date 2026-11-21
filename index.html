@@ -13,8 +13,20 @@
         <!-- 3D Canvas -->
         <canvas id="webgl-canvas"></canvas>
 
+        <!-- Floating Text Container -->
+        <div id="floating-text-container"></div>
+
         <!-- In-Game HUD -->
         <div id="hud" class="hidden">
+            <div id="zone-banner" class="zone-banner hidden">
+                <div id="zone-banner-title" class="zone-banner-title">ZONE 1</div>
+                <div id="zone-banner-sub" class="zone-banner-sub">NEO TOKYO</div>
+            </div>
+
+            <div id="mission-toast" class="mission-toast hidden">
+                <span>🏆</span> <span id="mission-toast-text">MISSION COMPLETE!</span>
+            </div>
+
             <div class="hud-top-bar">
                 <div class="hud-group">
                     <div class="hud-card">
