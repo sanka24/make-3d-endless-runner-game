@@ -60,7 +60,7 @@ class EndlessRunnerGame {
         // Object Tracking & Pooling
         this.trackChunks = [];
         this.chunkLength = 60;
-        this.totalChunks = 9;
+        this.totalChunks = 11;
         this.obstacles = [];
         this.coinsList = [];
         this.powerupItems = [];
