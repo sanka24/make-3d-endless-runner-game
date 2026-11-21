@@ -77,6 +77,19 @@ class EndlessRunnerGame {
         this.clock = new THREE.Clock();
         this.lastFrameTime = 0;
 
+        // Biome / Zone Management
+        this.currentZone = 1;
+        this.targetFogColor = new THREE.Color(0x060914);
+        this.targetAmbientColor = new THREE.Color(0x334466);
+        this.targetSunColor = new THREE.Color(0xff0066);
+
+        // Missions System
+        this.missions = [
+            { id: 'distance', title: 'RUN 400M', target: 400, current: 0, reward: 80, completed: false },
+            { id: 'coins', title: 'COLLECT 30 COINS', target: 30, current: 0, reward: 60, completed: false },
+            { id: 'near_miss', title: '2 NEAR-MISS DODGES', target: 2, current: 0, reward: 100, completed: false }
+        ];
+
         // Local Storage Data
         this.loadPlayerData();
 
