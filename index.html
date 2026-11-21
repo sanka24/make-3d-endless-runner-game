@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CYBER RUNNER 3D - Endless Sci-Fi Runner</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Local Three.js build for instant high performance -->
+    <script src="js/three.min.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 3D Canvas -->
+        <canvas id="webgl-canvas"></canvas>
+
+        <!-- In-Game HUD -->
+        <div id="hud" class="hidden">
+            <div class="hud-top-bar">
+                <div class="hud-group">
+                    <div class="hud-card">
+                        <div>
+                            <div class="hud-label">SCORE</div>
+                            <div id="hud-score" class="hud-value">0</div>
+                        </div>
+                        <div id="hud-multiplier" class="hud-multiplier">1X</div>
+                    </div>
+                    <div id="active-powerups-hud"></div>
+                </div>
+
+                <div class="hud-group" style="align-items: flex-end;">
+                    <button id="btn-hud-pause" class="hud-btn-pause" onclick="window.game.togglePause()">⏸</button>
+                    <div class="hud-card" style="margin-top: 8px;">
+                        <div>
+                            <div class="hud-label">COINS</div>
+                            <div id="hud-coins" class="hud-value gold">0</div>
+                        </div>
+                    </div>
+                    <div class="hud-card">
+                        <div>
+                            <div class="hud-label">DISTANCE</div>
+                            <div id="hud-distance" class="hud-value">0m</div>
+                        </div>
+                    </div>
+                    <div class="hud-card">
+                        <div>
+                            <div class="hud-label">SPEED</div>
+                            <div id="hud-speed" class="hud-value" style="font-size: 15px; color: var(--primary);">60 KM/H</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Virtual Touch Controls for Mobile / Touchscreens -->
+            <div id="mobile-controls">
+                <div class="touch-control-group">
+                    <button id="btn-left" class="touch-btn">◀<span>LEFT</span></button>
+                    <button id="btn-right" class="touch-btn">▶<span>RIGHT</span></button>
+                </div>
+                <div class="touch-control-group">
+                    <button id="btn-slide" class="touch-btn">▼<span>SLIDE</span></button>
+                    <button id="btn-jump" class="touch-btn">▲<span>JUMP</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Menu Overlay -->
+        <div id="menu-screen" class="ui-overlay">
+            <div class="menu-panel">
+                <h1 class="game-title">CYBER RUNNER</h1>
+                <p class="game-subtitle">NEON VELOCITY 3D</p>
+
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-name">TOP RECORD</span>
+                        <span id="menu-highscore" class="stat-val">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">VAULT COINS</span>
+                        <span id="menu-coins" class="stat-val" style="color: #ffd700;">0 🪙</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btn-play" class="cyber-btn primary">▶ ENGAGE RUN</button>
+                    <button id="btn-shop" class="cyber-btn secondary">⚡ HERO SHOP & UPGRADES</button>
+                </div>
+
+                <div class="controls-guide">
+                    <div><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd> LANE</div>
+                    <div><kbd>↑</kbd> / <kbd>W</kbd> / <kbd>SPACE</kbd> JUMP</div>
+                    <div><kbd>↓</kbd> / <kbd>S</kbd> SLIDE</div>
+                </div>
+
+                <div class="audio-controls">
+                    <button id="btn-toggle-music" class="audio-btn">🎵 MUSIC: ON</button>
+                    <button id="btn-toggle-sfx" class="audio-btn">🔊 SFX: ON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameover-screen" class="ui-overlay hidden">
+            <div class="menu-panel">
+                <h2 class="gameover-title">SYSTEM OFFLINE</h2>
+                <div id="new-highscore-badge" class="highscore-badge hidden">★ NEW RECORD ACHIEVED! ★</div>
+
+                <div class="results-grid">
+                    <div class="result-card">
+                        <span class="result-label">FINAL SCORE</span>
+                        <span id="final-score" class="result-val">0</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">DISTANCE</span>
+                        <span id="final-distance" class="result-val">0m</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">COINS</span>
+                        <span id="final-coins" class="result-val" style="color: #ffd700;">0 🪙</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px; font-size: 13px; color: #94a3b8;">
+                    RECORD HIGH: <span id="best-score-display" style="color: var(--primary); font-weight: 800;">0</span>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btn-restart" class="cyber-btn primary">🔄 RESTART RUN</button>
+                    <button id="btn-shop-go" class="cyber-btn secondary">⚡ UPGRADES & SKINS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Screen Overlay -->
+        <div id="pause-screen" class="ui-overlay hidden">
+            <div class="menu-panel">
+                <h2 class="game-title" style="font-size: 28px;">RUN PAUSED</h2>
+                <div class="btn-group" style="margin-top: 24px;">
+                    <button id="btn-resume" class="cyber-btn primary">▶ RESUME RUN</button>
+                    <button id="btn-quit" class="cyber-btn secondary">⏹ MAIN MENU</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shop & Customization Modal -->
+        <div id="shop-modal" class="ui-overlay hidden">
+            <div class="shop-modal-panel">
+                <div class="shop-header">
+                    <div>
+                        <div class="shop-title">CYBER SHOP</div>
+                        <div style="font-size: 12px; color: #ffd700;">AVAILABLE CREDITS: <span id="shop-total-coins">0</span> 🪙</div>
+                    </div>
+                    <button id="btn-close-shop" class="shop-close-btn">✕</button>
+                </div>
+
+                <div>
+                    <div class="shop-section-title">SUIT CHROMAS & SKINS</div>
+                    <div id="skins-container" class="skins-grid"></div>
+                </div>
+
+                <div>
+                    <div class="shop-section-title">POWER-UP AUGMENTATIONS</div>
+                    <div id="upgrades-container" class="upgrades-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/models.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
