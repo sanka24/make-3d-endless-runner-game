@@ -343,22 +343,22 @@ class EndlessRunnerGame {
         if (patternType === 0) {
             const lane = laneX[Math.floor(Math.random() * 3)];
             for (let i = 0; i < 7; i++) {
-                this.spawnCoin(lane, 1.1, chunkZ - 20 + i * 3.5);
+                this.spawnCoin(lane, 1.1, chunkZ - 15 + i * 4);
             }
-            if (Math.random() < 0.25) {
-                this.spawnPowerup(chunkZ - 35);
+            if (Math.random() < 0.3) {
+                this.spawnPowerup(chunkZ + 18);
             }
         }
         // Pattern 1: Low Hurdle with Coin Arc to Jump Over
         else if (patternType === 1) {
             const targetLane = Math.floor(Math.random() * 3);
-            const obstacleZ = chunkZ - 15;
+            const obstacleZ = chunkZ;
 
             // Obstacle in target lane
             this.spawnObstacle('low', laneX[targetLane], obstacleZ);
 
             // Coin arc over hurdle
-            this.spawnCoinArc(laneX[targetLane], obstacleZ - 6, obstacleZ + 6);
+            this.spawnCoinArc(laneX[targetLane], obstacleZ - 7, obstacleZ + 7);
 
             // Another lane might have a block
             if (diffRatio > 0.3) {
@@ -369,13 +369,13 @@ class EndlessRunnerGame {
         // Pattern 2: High Laser Gate to Slide Under
         else if (patternType === 2) {
             const targetLane = Math.floor(Math.random() * 3);
-            const obstacleZ = chunkZ - 15;
+            const obstacleZ = chunkZ;
 
             this.spawnObstacle('high', laneX[targetLane], obstacleZ);
 
             // Low coins on the floor to slide through
-            for (let i = -1; i <= 2; i++) {
-                this.spawnCoin(laneX[targetLane], 0.6, obstacleZ + i * 2.5);
+            for (let i = -2; i <= 2; i++) {
+                this.spawnCoin(laneX[targetLane], 0.6, obstacleZ + i * 3);
             }
 
             // Fill one of other lanes with a low hurdle or block
@@ -385,28 +385,28 @@ class EndlessRunnerGame {
         // Pattern 3: Ramp Launch over Cyber Blockades
         else if (patternType === 3) {
             const rampLane = Math.floor(Math.random() * 3);
-            const rampZ = chunkZ - 8;
+            const rampZ = chunkZ + 10;
 
             this.spawnObstacle('ramp', laneX[rampLane], rampZ);
 
             // High air coins
             for (let i = 1; i <= 5; i++) {
-                this.spawnCoin(laneX[rampLane], 2.8 + Math.sin((i / 5) * Math.PI) * 2.2, rampZ - i * 4);
+                this.spawnCoin(laneX[rampLane], 2.8 + Math.sin((i / 5) * Math.PI) * 2.2, rampZ - i * 3.5);
             }
 
             // Blockade behind ramp that you fly over!
-            this.spawnObstacle('block', laneX[rampLane], rampZ - 14);
+            this.spawnObstacle('block', laneX[rampLane], rampZ - 8);
 
             // Other lanes blocked
             laneX.forEach((lx, idx) => {
                 if (idx !== rampLane && Math.random() > 0.4) {
-                    this.spawnObstacle('block', lx, rampZ - 6);
+                    this.spawnObstacle('block', lx, rampZ);
                 }
             });
         }
         // Pattern 4: Moving Patrol Drone
         else if (patternType === 4 && diffRatio > 0.2) {
-            const droneZ = chunkZ - 18;
+            const droneZ = chunkZ;
             this.spawnObstacle('drone', 0, droneZ);
 
             // Surrounding coins
@@ -417,23 +417,23 @@ class EndlessRunnerGame {
         }
         // Pattern 5: Zig-Zag Lane Switch Sequence
         else if (patternType === 5) {
-            this.spawnObstacle('block', laneX[0], chunkZ - 10);
-            this.spawnObstacle('block', laneX[1], chunkZ - 24);
-            this.spawnObstacle('block', laneX[2], chunkZ - 38);
+            this.spawnObstacle('block', laneX[0], chunkZ + 16);
+            this.spawnObstacle('block', laneX[1], chunkZ);
+            this.spawnObstacle('block', laneX[2], chunkZ - 16);
 
             // Coins guiding path
-            this.spawnCoin(laneX[1], 1.1, chunkZ - 10);
-            this.spawnCoin(laneX[2], 1.1, chunkZ - 24);
-            this.spawnCoin(laneX[0], 1.1, chunkZ - 38);
+            this.spawnCoin(laneX[1], 1.1, chunkZ + 16);
+            this.spawnCoin(laneX[2], 1.1, chunkZ);
+            this.spawnCoin(laneX[0], 1.1, chunkZ - 16);
 
             if (Math.random() < 0.3) {
-                this.spawnPowerup(chunkZ - 32);
+                this.spawnPowerup(chunkZ - 8);
             }
         }
         // Pattern 6: High Intensity Mixed Hazard
         else {
             const openLane = Math.floor(Math.random() * 3);
-            const hazardZ = chunkZ - 18;
+            const hazardZ = chunkZ;
 
             for (let i = 0; i < 3; i++) {
                 if (i !== openLane) {
@@ -610,6 +610,7 @@ class EndlessRunnerGame {
             this.slideTimer = 0;
             this.jumpVelocity = customVel !== null ? customVel : 17.5;
             this.jumpTime = 0;
+            this.jumpDuration = customVel !== null ? (customVel / Math.abs(this.gravity)) * 2 : 0.72;
             this.canDoubleJump = true;
             this.hasDoubleJumped = false;
             window.soundEngine.playJump();
@@ -619,6 +620,7 @@ class EndlessRunnerGame {
             this.hasDoubleJumped = true;
             this.jumpVelocity = 15.0;
             this.jumpTime = 0;
+            this.jumpDuration = 0.68;
             this.spawnParticleBurst(this.playerX, this.playerY + 0.5, this.playerZ, 0x00f0ff, 12);
             window.soundEngine.playJump();
         }
