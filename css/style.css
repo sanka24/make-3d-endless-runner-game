@@ -142,6 +142,112 @@ html, body {
     pointer-events: none;
 }
 
+/* Zone Banner */
+.zone-banner {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(6, 9, 20, 0.88);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    padding: 12px 32px;
+    text-align: center;
+    box-shadow: 0 0 30px var(--primary-glow);
+    animation: bannerFade 3.5s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    pointer-events: none;
+    z-index: 25;
+}
+
+.zone-banner-title {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #fff;
+    text-shadow: 0 0 15px currentColor;
+}
+
+.zone-banner-sub {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+@keyframes bannerFade {
+    0% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
+}
+
+/* Mission Toast Notification */
+.mission-toast {
+    position: absolute;
+    top: 75px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(15, 23, 42, 0.9));
+    border: 1px solid #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #ffd700;
+    pointer-events: none;
+    animation: toastSlide 3s forwards ease-in-out;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes toastSlide {
+    0% { opacity: 0; transform: translate(-50%, -20px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -15px); }
+}
+
+/* Floating Text Popups */
+#floating-text-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 15;
+}
+
+.floating-popup {
+    position: absolute;
+    font-family: var(--font-cyber);
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 10px currentColor;
+    animation: floatUp 0.85s forwards ease-out;
+    transform: translate(-50%, -50%);
+}
+
+.floating-popup.big {
+    font-size: 28px;
+    letter-spacing: 3px;
+}
+
+@keyframes floatUp {
+    0% { opacity: 0; transform: translate(-50%, 0) scale(0.7); }
+    20% { opacity: 1; transform: translate(-50%, -15px) scale(1.15); }
+    60% { opacity: 1; transform: translate(-50%, -40px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -70px) scale(0.9); }
+}
+
 .powerup-badge {
     background: rgba(15, 23, 42, 0.85);
     border: 1px solid;
