@@ -121,6 +121,12 @@ class EndlessRunnerGame {
                 multiplier: 1,
                 boost: 1
             };
+            if (data.musicMuted !== undefined && window.soundEngine) {
+                window.soundEngine.musicMuted = data.musicMuted;
+            }
+            if (data.sfxMuted !== undefined && window.soundEngine) {
+                window.soundEngine.sfxMuted = data.sfxMuted;
+            }
         } catch (e) {
             this.coins = 0;
             this.highScore = 0;
@@ -138,7 +144,9 @@ class EndlessRunnerGame {
                 highScore: this.highScore,
                 activeSkin: this.activeSkin,
                 unlockedSkins: this.unlockedSkins,
-                upgrades: this.upgrades
+                upgrades: this.upgrades,
+                musicMuted: window.soundEngine ? window.soundEngine.musicMuted : false,
+                sfxMuted: window.soundEngine ? window.soundEngine.sfxMuted : false
             };
             localStorage.setItem('cyber_runner_save', JSON.stringify(data));
         } catch (e) {}
@@ -607,9 +615,101 @@ class EndlessRunnerGame {
         if (this.state !== 'PLAYING') return;
         const newLane = this.currentLane + dir;
         if (newLane >= 0 && newLane <= 2) {
+            const oldLaneX = this.LANES[this.currentLane];
+            this.checkNearMiss(oldLaneX);
+
             this.currentLane = newLane;
             this.targetX = this.LANES[this.currentLane];
             window.soundEngine.playClick();
+        }
+    }
+
+    checkNearMiss(oldLaneX) {
+        for (let i = 0; i < this.obstacles.length; i++) {
+            const obs = this.obstacles[i];
+            if (!obs.userData || obs.userData.type === 'ramp') continue;
+            if (Math.abs(obs.position.x - oldLaneX) < 1.0) {
+                const dz = obs.position.z - this.playerZ;
+                // Obstacle directly ahead within 1.0 to 6.5 units
+                if (dz < -1.0 && dz > -6.5) {
+                    this.triggerNearMiss(obs);
+                    break;
+                }
+            }
+        }
+    }
+
+    triggerNearMiss(obs) {
+        this.score += 250 * this.activeMultiplier;
+        this.showFloatingText('NEAR MISS! +250', '#ffd700', true);
+        window.soundEngine.playNearMiss();
+        this.triggerScreenShake(0.18);
+        this.spawnParticleBurst(obs.position.x, 1.2, obs.position.z, 0xffd700, 12);
+        this.progressMission('near_miss', 1);
+    }
+
+    showFloatingText(text, color = '#00f0ff', isBig = false) {
+        const container = document.getElementById('floating-text-container');
+        if (!container) return;
+        const popup = document.createElement('div');
+        popup.className = 'floating-popup' + (isBig ? ' big' : '');
+        popup.innerText = text;
+        popup.style.color = color;
+        popup.style.left = (window.innerWidth / 2 + (Math.random() - 0.5) * 80) + 'px';
+        popup.style.top = (window.innerHeight * 0.45 + (Math.random() - 0.5) * 40) + 'px';
+        container.appendChild(popup);
+        setTimeout(() => {
+            if (popup.parentNode) popup.parentNode.removeChild(popup);
+        }, 850);
+    }
+
+    setZone(zoneNum, title, subtitle, fogHex, ambientHex, sunHex) {
+        this.currentZone = zoneNum;
+        this.targetFogColor.setHex(fogHex);
+        this.targetSunColor.setHex(sunHex);
+        this.showZoneBanner(title, subtitle);
+        window.soundEngine.playPowerup();
+        this.triggerScreenShake(0.25);
+    }
+
+    showZoneBanner(title, subtitle) {
+        const banner = document.getElementById('zone-banner');
+        const titleEl = document.getElementById('zone-banner-title');
+        const subEl = document.getElementById('zone-banner-sub');
+        if (banner && titleEl && subEl) {
+            titleEl.innerText = title;
+            subEl.innerText = subtitle;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 3500);
+        }
+    }
+
+    progressMission(type, amount) {
+        this.missions.forEach(m => {
+            if (m.id === type && !m.completed) {
+                m.current += amount;
+                if (m.current >= m.target) {
+                    m.completed = true;
+                    this.coins += m.reward;
+                    this.savePlayerData();
+                    window.soundEngine.playMissionComplete();
+                    this.showMissionToast(`🏆 ${m.title} COMPLETE (+${m.reward} 🪙)`);
+                }
+            }
+        });
+    }
+
+    showMissionToast(text) {
+        const toast = document.getElementById('mission-toast');
+        const textEl = document.getElementById('mission-toast-text');
+        if (toast && textEl) {
+            textEl.innerText = text;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
         }
     }
 
@@ -635,6 +735,7 @@ class EndlessRunnerGame {
             this.jumpTime = 0;
             this.jumpDuration = 0.68;
             this.spawnParticleBurst(this.playerX, this.playerY + 0.5, this.playerZ, 0x00f0ff, 12);
+            this.showFloatingText('DOUBLE JUMP! ⚡', '#00f0ff', false);
             window.soundEngine.playJump();
         }
     }
@@ -703,6 +804,15 @@ class EndlessRunnerGame {
         this.isJumping = false;
         this.isSliding = false;
         this.invulnerableTimer = 0;
+        this.currentZone = 1;
+        this.targetFogColor.setHex(0x060914);
+        this.targetSunColor.setHex(0xff0066);
+
+        // Reset run missions
+        this.missions.forEach(m => {
+            m.current = 0;
+            m.completed = false;
+        });
 
         // Reset powerups
         Object.keys(this.powerups).forEach(k => {
@@ -904,6 +1014,25 @@ class EndlessRunnerGame {
         this.playerZ -= deltaZ;
         this.distance += deltaZ;
         this.score += deltaZ * this.activeMultiplier;
+
+        // Zone Progression
+        if (this.distance >= 950 && this.currentZone < 3) {
+            this.setZone(3, 'ZONE 3', 'MATRIX CORE VOID', 0x03120c, 0x0d3b24, 0x00ff88);
+        } else if (this.distance >= 450 && this.distance < 950 && this.currentZone < 2) {
+            this.setZone(2, 'ZONE 2', 'OUTRUN SUNSET', 0x1f0b18, 0x552233, 0xffaa00);
+        }
+
+        // Atmosphere Smooth Color Lerp
+        if (this.scene.fog) {
+            this.scene.fog.color.lerp(this.targetFogColor, dt * 2.0);
+            this.renderer.setClearColor(this.scene.fog.color);
+        }
+        if (this.sun) {
+            this.sun.material.color.lerp(this.targetSunColor, dt * 2.0);
+        }
+
+        // Progress Distance Mission
+        this.progressMission('distance', deltaZ);
 
         // Smooth Lane Switching (Lerp)
         const laneLerpSpeed = isBoosted ? 26 : 18;
@@ -1115,6 +1244,11 @@ class EndlessRunnerGame {
         this.spawnParticleBurst(coin.position.x, coin.position.y, coin.position.z, 0xffcc00, 8);
         this.scene.remove(coin);
         this.coinsList.splice(index, 1);
+
+        this.progressMission('coins', 1);
+        if (this.runCoins % 15 === 0) {
+            this.showFloatingText('STREAK x' + this.runCoins + '! 🪙', '#ffd700', false);
+        }
     }
 
     // --- Collision Detection Engine ---
@@ -1153,6 +1287,7 @@ class EndlessRunnerGame {
                     this.jump(true, 24.0);
                     window.soundEngine.playJump();
                     this.triggerScreenShake(0.15);
+                    this.showFloatingText('RAMP FLIGHT! 🚀', '#ffaa00', true);
                     continue;
                 }
 
@@ -1163,6 +1298,8 @@ class EndlessRunnerGame {
                     this.scene.remove(obs);
                     this.obstacles.splice(i, 1);
                     this.triggerScreenShake(0.2);
+                    this.showFloatingText('SMASH! +150', '#00ffff', false);
+                    this.score += 150 * this.activeMultiplier;
                     continue;
                 }
 
@@ -1314,17 +1451,31 @@ class EndlessRunnerGame {
         });
 
         // Sound Toggles
-        document.getElementById('btn-toggle-music')?.addEventListener('click', (e) => {
-            const on = window.soundEngine.toggleMusic();
-            e.currentTarget.innerText = on ? '🎵 MUSIC: ON' : '🎵 MUSIC: OFF';
-            e.currentTarget.classList.toggle('muted', !on);
-        });
+        const musicBtn = document.getElementById('btn-toggle-music');
+        if (musicBtn && window.soundEngine) {
+            const on = !window.soundEngine.musicMuted;
+            musicBtn.innerText = on ? '🎵 MUSIC: ON' : '🎵 MUSIC: OFF';
+            musicBtn.classList.toggle('muted', !on);
+            musicBtn.addEventListener('click', (e) => {
+                const isNowOn = window.soundEngine.toggleMusic();
+                e.currentTarget.innerText = isNowOn ? '🎵 MUSIC: ON' : '🎵 MUSIC: OFF';
+                e.currentTarget.classList.toggle('muted', !isNowOn);
+                this.savePlayerData();
+            });
+        }
 
-        document.getElementById('btn-toggle-sfx')?.addEventListener('click', (e) => {
-            const on = window.soundEngine.toggleSFX();
-            e.currentTarget.innerText = on ? '🔊 SFX: ON' : '🔊 SFX: OFF';
-            e.currentTarget.classList.toggle('muted', !on);
-        });
+        const sfxBtn = document.getElementById('btn-toggle-sfx');
+        if (sfxBtn && window.soundEngine) {
+            const on = !window.soundEngine.sfxMuted;
+            sfxBtn.innerText = on ? '🔊 SFX: ON' : '🔊 SFX: OFF';
+            sfxBtn.classList.toggle('muted', !on);
+            sfxBtn.addEventListener('click', (e) => {
+                const isNowOn = window.soundEngine.toggleSFX();
+                e.currentTarget.innerText = isNowOn ? '🔊 SFX: ON' : '🔊 SFX: OFF';
+                e.currentTarget.classList.toggle('muted', !isNowOn);
+                this.savePlayerData();
+            });
+        }
 
         // Update Start Screen High Score & Coins
         document.getElementById('menu-highscore').innerText = Math.floor(this.highScore).toLocaleString();
