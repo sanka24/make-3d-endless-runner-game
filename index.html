@@ -2,184 +2,724 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CYBER RUNNER 3D - Endless Sci-Fi Runner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IronPulse Gym - Automated Member & Expiry Reminder System</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Local Three.js build for instant high performance -->
-    <script src="js/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="game-container">
-        <!-- 3D Canvas -->
-        <canvas id="webgl-canvas"></canvas>
-
-        <!-- Floating Text Container -->
-        <div id="floating-text-container"></div>
-
-        <!-- In-Game HUD -->
-        <div id="hud" class="hidden">
-            <div id="zone-banner" class="zone-banner hidden">
-                <div id="zone-banner-title" class="zone-banner-title">ZONE 1</div>
-                <div id="zone-banner-sub" class="zone-banner-sub">NEO TOKYO</div>
-            </div>
-
-            <div id="mission-toast" class="mission-toast hidden">
-                <span>🏆</span> <span id="mission-toast-text">MISSION COMPLETE!</span>
-            </div>
-
-            <div class="hud-top-bar">
-                <div class="hud-group">
-                    <div class="hud-card">
-                        <div>
-                            <div class="hud-label">SCORE</div>
-                            <div id="hud-score" class="hud-value">0</div>
-                        </div>
-                        <div id="hud-multiplier" class="hud-multiplier">1X</div>
-                    </div>
-                    <div id="active-powerups-hud"></div>
-                </div>
-
-                <div class="hud-group" style="align-items: flex-end;">
-                    <button id="btn-hud-pause" class="hud-btn-pause" onclick="window.game.togglePause()">⏸</button>
-                    <div class="hud-card" style="margin-top: 8px;">
-                        <div>
-                            <div class="hud-label">COINS</div>
-                            <div id="hud-coins" class="hud-value gold">0</div>
-                        </div>
-                    </div>
-                    <div class="hud-card">
-                        <div>
-                            <div class="hud-label">DISTANCE</div>
-                            <div id="hud-distance" class="hud-value">0m</div>
-                        </div>
-                    </div>
-                    <div class="hud-card">
-                        <div>
-                            <div class="hud-label">SPEED</div>
-                            <div id="hud-speed" class="hud-value" style="font-size: 15px; color: var(--primary);">60 KM/H</div>
-                        </div>
-                    </div>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">🏋️</div>
+                <div>
+                    <div class="brand-title" id="gym-name-display">IronPulse Gym</div>
+                    <div class="brand-subtitle">Fitness Club CRM</div>
                 </div>
             </div>
 
-            <!-- Virtual Touch Controls for Mobile / Touchscreens -->
-            <div id="mobile-controls">
-                <div class="touch-control-group">
-                    <button id="btn-left" class="touch-btn">◀<span>LEFT</span></button>
-                    <button id="btn-right" class="touch-btn">▶<span>RIGHT</span></button>
-                </div>
-                <div class="touch-control-group">
-                    <button id="btn-slide" class="touch-btn">▼<span>SLIDE</span></button>
-                    <button id="btn-jump" class="touch-btn">▲<span>JUMP</span></button>
-                </div>
-            </div>
-        </div>
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-view="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item" data-view="members">
+                    <span class="nav-icon">👥</span>
+                    <span>Members</span>
+                    <span class="nav-badge" id="nav-total-count">0</span>
+                </a>
+                <a class="nav-item" data-view="reminders">
+                    <span class="nav-icon">⏰</span>
+                    <span>3-Day Reminders</span>
+                    <span class="nav-badge urgent" id="nav-expiring-count">0</span>
+                </a>
+                <a class="nav-item" data-view="attendance">
+                    <span class="nav-icon">📋</span>
+                    <span>Check-in Log</span>
+                    <span class="nav-badge" id="nav-checkin-count" style="background: rgba(6, 182, 212, 0.2); color: var(--cyan);">0</span>
+                </a>
+                <a class="nav-item" data-view="logs">
+                    <span class="nav-icon">📨</span>
+                    <span>Message History</span>
+                </a>
+                <a class="nav-item" data-view="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Settings & SMS API</span>
+                </a>
+            </nav>
 
-        <!-- Start Menu Overlay -->
-        <div id="menu-screen" class="ui-overlay">
-            <div class="menu-panel">
-                <h1 class="game-title">CYBER RUNNER</h1>
-                <p class="game-subtitle">NEON VELOCITY 3D</p>
-
-                <div class="stats-bar">
-                    <div class="stat-item">
-                        <span class="stat-name">TOP RECORD</span>
-                        <span id="menu-highscore" class="stat-val">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-name">VAULT COINS</span>
-                        <span id="menu-coins" class="stat-val" style="color: #ffd700;">0 🪙</span>
-                    </div>
-                </div>
-
-                <div class="btn-group">
-                    <button id="btn-play" class="cyber-btn primary">▶ ENGAGE RUN</button>
-                    <button id="btn-shop" class="cyber-btn secondary">⚡ HERO SHOP & UPGRADES</button>
-                </div>
-
-                <div class="controls-guide">
-                    <div><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd> LANE</div>
-                    <div><kbd>↑</kbd> / <kbd>W</kbd> / <kbd>SPACE</kbd> JUMP</div>
-                    <div><kbd>↓</kbd> / <kbd>S</kbd> SLIDE</div>
-                </div>
-
-                <div class="audio-controls">
-                    <button id="btn-toggle-music" class="audio-btn">🎵 MUSIC: ON</button>
-                    <button id="btn-toggle-sfx" class="audio-btn">🔊 SFX: ON</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Game Over Overlay -->
-        <div id="gameover-screen" class="ui-overlay hidden">
-            <div class="menu-panel">
-                <h2 class="gameover-title">SYSTEM OFFLINE</h2>
-                <div id="new-highscore-badge" class="highscore-badge hidden">★ NEW RECORD ACHIEVED! ★</div>
-
-                <div class="results-grid">
-                    <div class="result-card">
-                        <span class="result-label">FINAL SCORE</span>
-                        <span id="final-score" class="result-val">0</span>
-                    </div>
-                    <div class="result-card">
-                        <span class="result-label">DISTANCE</span>
-                        <span id="final-distance" class="result-val">0m</span>
-                    </div>
-                    <div class="result-card">
-                        <span class="result-label">COINS</span>
-                        <span id="final-coins" class="result-val" style="color: #ffd700;">0 🪙</span>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 20px; font-size: 13px; color: #94a3b8;">
-                    RECORD HIGH: <span id="best-score-display" style="color: var(--primary); font-weight: 800;">0</span>
-                </div>
-
-                <div class="btn-group">
-                    <button id="btn-restart" class="cyber-btn primary">🔄 RESTART RUN</button>
-                    <button id="btn-shop-go" class="cyber-btn secondary">⚡ UPGRADES & SKINS</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pause Screen Overlay -->
-        <div id="pause-screen" class="ui-overlay hidden">
-            <div class="menu-panel">
-                <h2 class="game-title" style="font-size: 28px;">RUN PAUSED</h2>
-                <div class="btn-group" style="margin-top: 24px;">
-                    <button id="btn-resume" class="cyber-btn primary">▶ RESUME RUN</button>
-                    <button id="btn-quit" class="cyber-btn secondary">⏹ MAIN MENU</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Shop & Customization Modal -->
-        <div id="shop-modal" class="ui-overlay hidden">
-            <div class="shop-modal-panel">
-                <div class="shop-header">
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-dot"></div>
                     <div>
-                        <div class="shop-title">CYBER SHOP</div>
-                        <div style="font-size: 12px; color: #ffd700;">AVAILABLE CREDITS: <span id="shop-total-coins">0</span> 🪙</div>
+                        <div style="font-weight: 600; color: #fff;">Auto-Reminder Bot</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" id="bot-status-text">Active (Checks Every 1 hr)</div>
                     </div>
-                    <button id="btn-close-shop" class="shop-close-btn">✕</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle-btn" id="btn-toggle-sidebar">☰</button>
+                    <div class="header-search">
+                        <span class="search-icon-svg">🔍</span>
+                        <input type="text" id="global-search-input" placeholder="Search member by Name or Mobile No...">
+                    </div>
                 </div>
 
-                <div>
-                    <div class="shop-section-title">SUIT CHROMAS & SKINS</div>
-                    <div id="skins-container" class="skins-grid"></div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary btn-sm" id="btn-quick-checkin">
+                        <span>⚡ Quick Check-in</span>
+                    </button>
+                    <button class="btn btn-primary" id="btn-open-add-member">
+                        <span>+ Add New Member</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+
+                <!-- =========================================
+                     1. DASHBOARD VIEW
+                     ========================================= -->
+                <div class="page-view active" id="view-dashboard">
+                    <!-- Urgent Alert Banner -->
+                    <div class="urgent-alert-banner" id="dashboard-urgent-banner">
+                        <div class="alert-left">
+                            <div class="alert-icon-wrap">⚠️</div>
+                            <div>
+                                <div class="alert-title" id="alert-banner-title">3 Members Expiring Within 3 Days</div>
+                                <div class="alert-subtitle" id="alert-banner-subtitle">
+                                    Automatic reminder dispatch is ready. Send personalized WhatsApp/SMS alerts with 1 click.
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-amber" id="btn-dashboard-send-reminders">
+                                <span>📲 Send 3-Day Reminders Now</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span class="stat-card-title">Total Members</span>
+                                <div class="stat-card-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--accent-primary);">👥</div>
+                            </div>
+                            <div class="stat-value" id="stat-total-members">0</div>
+                            <div class="stat-subtext">All registered gym records</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span class="stat-card-title">Active Members</span>
+                                <div class="stat-card-icon" style="background: var(--emerald-bg); color: var(--emerald);">✅</div>
+                            </div>
+                            <div class="stat-value" id="stat-active-members" style="color: var(--emerald);">0</div>
+                            <div class="stat-subtext">Valid memberships</div>
+                        </div>
+
+                        <div class="stat-card urgent">
+                            <div class="stat-card-header">
+                                <span class="stat-card-title">Expiring in ≤ 3 Days</span>
+                                <div class="stat-card-icon" style="background: var(--amber-bg); color: var(--amber);">⏳</div>
+                            </div>
+                            <div class="stat-value" id="stat-expiring-3days">0</div>
+                            <div class="stat-subtext" style="color: var(--amber);">Requires urgent renewal reminder</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span class="stat-card-title">Expired Members</span>
+                                <div class="stat-card-icon" style="background: var(--rose-bg); color: var(--rose);">❌</div>
+                            </div>
+                            <div class="stat-value" id="stat-expired-members" style="color: var(--rose);">0</div>
+                            <div class="stat-subtext">Overdue for renewal</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span class="stat-card-title">Monthly Revenue</span>
+                                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple);">💰</div>
+                            </div>
+                            <div class="stat-value" id="stat-monthly-revenue">$0</div>
+                            <div class="stat-subtext">Fees collected this month</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span class="stat-card-title">Reminders Sent</span>
+                                <div class="stat-card-icon" style="background: rgba(37, 211, 102, 0.15); color: var(--whatsapp);">📨</div>
+                            </div>
+                            <div class="stat-value" id="stat-reminders-sent">0</div>
+                            <div class="stat-subtext">WhatsApp & SMS notices dispatched</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Filter Bar -->
+                    <div class="filter-bar">
+                        <div class="filter-pills">
+                            <button class="filter-pill active" data-filter="all">All Members <span class="filter-pill-count" id="count-all">0</span></button>
+                            <button class="filter-pill urgent-pill" data-filter="expiring">⚠️ Expiring in 3 Days <span class="filter-pill-count" id="count-expiring">0</span></button>
+                            <button class="filter-pill" data-filter="active">Active <span class="filter-pill-count" id="count-active">0</span></button>
+                            <button class="filter-pill" data-filter="expired">Expired <span class="filter-pill-count" id="count-expired">0</span></button>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm" id="btn-export-csv">📥 Export CSV</button>
+                        </div>
+                    </div>
+
+                    <!-- Members Table -->
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Member Details</th>
+                                        <th>Mobile Number</th>
+                                        <th>Plan</th>
+                                        <th>Join Date</th>
+                                        <th>Expiry Date</th>
+                                        <th>Status / Days Left</th>
+                                        <th>3-Day Reminder Action</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-members-tbody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <div class="shop-section-title">POWER-UP AUGMENTATIONS</div>
-                    <div id="upgrades-container" class="upgrades-list"></div>
+                <!-- =========================================
+                     2. ALL MEMBERS DIRECTORY VIEW
+                     ========================================= -->
+                <div class="page-view" id="view-members">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="page-title">Member Directory</h2>
+                            <p class="page-desc">Manage all gym client records, contact numbers, and membership lifecycles.</p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="window.gymApp.openAddMemberModal()">+ Add New Member</button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar for Members -->
+                    <div class="filter-bar">
+                        <div class="filter-pills">
+                            <button class="filter-pill active" data-member-filter="all">All</button>
+                            <button class="filter-pill urgent-pill" data-member-filter="expiring">⚠️ Expiring ≤ 3 Days</button>
+                            <button class="filter-pill" data-member-filter="active">Active</button>
+                            <button class="filter-pill" data-member-filter="expired">Expired</button>
+                        </div>
+                        <input type="text" id="member-search-box" class="form-input" style="width: 250px; padding: 6px 12px;" placeholder="Search in members...">
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Member</th>
+                                        <th>Mobile No</th>
+                                        <th>Plan</th>
+                                        <th>Join Date</th>
+                                        <th>Expiry Date</th>
+                                        <th>Days Left</th>
+                                        <th>Payment</th>
+                                        <th>Quick Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="all-members-tbody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- =========================================
+                     3. 3-DAY EXPIRY REMINDERS HUB
+                     ========================================= -->
+                <div class="page-view" id="view-reminders">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="page-title">⏰ 3-Day Automated Expiry Reminder Hub</h2>
+                            <p class="page-desc">Monitors member memberships expiring within 3 days and dispatches WhatsApp / SMS reminders automatically.</p>
+                        </div>
+                        <button class="btn btn-amber" id="btn-bulk-send-all">
+                            <span>📲 Dispatch All 3-Day Reminders Now</span>
+                        </button>
+                    </div>
+
+                    <!-- Reminder Automation Configuration Card -->
+                    <div class="reminder-control-card">
+                        <div class="reminder-header-row">
+                            <div class="reminder-title-area">
+                                <h3>⚙️ Automated Reminder Dispatch Settings</h3>
+                                <p>When enabled, our background scheduler identifies members whose expiry is within 3 days and automatically sends notices.</p>
+                            </div>
+                            <div class="auto-toggle-box">
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-auto-send" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 13px;" id="toggle-status-label">Auto-Send: ENABLED</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">Triggers automatic reminders at 3 days before expiry</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="template-preview-box">
+                            <div>
+                                <span style="color: var(--amber); font-weight: 700;">Active 3-Day Message Template:</span><br>
+                                <span id="template-preview-text">"Hi {memberName}, your {gymName} {planName} membership expires in {daysLeft} days on {expiryDate}. Renew now to keep your workout streak going! Contact {gymPhone}."</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="btn-edit-template">Edit Template</button>
+                        </div>
+                    </div>
+
+                    <!-- Expiring Members Target List -->
+                    <div class="section-header" style="margin-top: 10px;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: #fff;">Members Due for Reminder (≤ 3 Days Remaining)</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);" id="reminders-target-count">Loading...</span>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Member Name</th>
+                                        <th>Mobile No</th>
+                                        <th>Plan</th>
+                                        <th>Expiry Date</th>
+                                        <th>Countdown</th>
+                                        <th>Reminder Status</th>
+                                        <th>Direct Messaging</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expiring-members-tbody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================
+                     4. ATTENDANCE & QUICK CHECK-IN
+                     ========================================= -->
+                <div class="page-view" id="view-attendance">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="page-title">Gym Front-Desk Check-in</h2>
+                            <p class="page-desc">Log member attendance by mobile number or name. Alerts front-desk staff if membership is expiring soon.</p>
+                        </div>
+                    </div>
+
+                    <div class="checkin-hero-card">
+                        <h3 style="font-size: 20px; font-weight: 800; color: #fff;">Daily Member Check-In</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Enter member mobile number or member ID below:</p>
+
+                        <form class="checkin-form" id="checkin-form">
+                            <input type="text" id="checkin-input" class="checkin-input" placeholder="e.g. 9876543210 or John" required autofocus>
+                            <button type="submit" class="btn btn-primary" style="padding: 14px 24px; font-size: 15px;">
+                                <span>Check In</span>
+                            </button>
+                        </form>
+
+                        <div id="checkin-result-box" style="margin-top: 20px; display: none;"></div>
+                    </div>
+
+                    <div class="section-header">
+                        <h3 style="font-size: 16px; font-weight: 700;">Today's Check-in Log</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);" id="today-attendance-count">0 Check-ins Today</span>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Member Name</th>
+                                        <th>Mobile No</th>
+                                        <th>Plan</th>
+                                        <th>Expiry Date</th>
+                                        <th>Membership Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendance-tbody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================
+                     5. MESSAGE DELIVERY HISTORY
+                     ========================================= -->
+                <div class="page-view" id="view-logs">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="page-title">Message Delivery Logs</h2>
+                            <p class="page-desc">Complete audit trail of all automated 3-day reminders, WhatsApp notices, and SMS dispatches.</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="btn-clear-logs">Clear Logs</button>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Recipient</th>
+                                        <th>Mobile Number</th>
+                                        <th>Channel</th>
+                                        <th>Message Dispatched</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="message-logs-tbody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========================================
+                     6. SETTINGS VIEW
+                     ========================================= -->
+                <div class="page-view" id="view-settings">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="page-title">Gym Settings & Reminder Configurations</h2>
+                            <p class="page-desc">Configure your gym details, notification triggers, and WhatsApp / SMS gateway credentials.</p>
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-settings">Save All Settings</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+                        <!-- Gym Profile -->
+                        <div class="table-card" style="padding: 24px;">
+                            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #fff;">🏋️ Gym Business Profile</h3>
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Gym / Fitness Club Name</label>
+                                <input type="text" id="setting-gym-name" class="form-input" value="IronPulse Fitness Club">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Contact Mobile / WhatsApp Number</label>
+                                <input type="text" id="setting-gym-phone" class="form-input" value="+1 (555) 234-5678">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Currency Symbol</label>
+                                <input type="text" id="setting-currency" class="form-input" value="$" style="width: 80px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gym Physical Address</label>
+                                <input type="text" id="setting-gym-address" class="form-input" value="104 Olympic Blvd, Suite 200, Downtown">
+                            </div>
+                        </div>
+
+                        <!-- Automated Expiry Settings -->
+                        <div class="table-card" style="padding: 24px;">
+                            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #fff;">⏰ Automated Expiry Reminder Rules</h3>
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Reminder Trigger Days Before Expiry</label>
+                                <input type="number" id="setting-days-trigger" class="form-input" value="3" readonly style="background: rgba(0,0,0,0.2);">
+                                <span style="font-size: 11px; color: var(--text-muted);">Default set to 3 days before membership expires (as requested).</span>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label class="form-label">Default Dispatch Channel</label>
+                                <select id="setting-default-channel" class="form-select">
+                                    <option value="whatsapp">WhatsApp Direct (wa.me)</option>
+                                    <option value="sms">Device Native SMS</option>
+                                    <option value="webhook">Automated Webhook / Twilio Gateway</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Webhook / SMS Gateway API URL (Optional)</label>
+                                <input type="url" id="setting-webhook-url" class="form-input" placeholder="https://api.sms-gateway.com/send">
+                                <span style="font-size: 11px; color: var(--text-muted);">Integrate with Twilio, Fast2SMS, or custom backend.</span>
+                            </div>
+                        </div>
+
+                        <!-- Backup & Reset -->
+                        <div class="table-card" style="padding: 24px; grid-column: 1 / -1;">
+                            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #fff;">💾 Data Management & Backup</h3>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" id="btn-download-backup">📥 Download Full Database Backup (JSON)</button>
+                                <button class="btn btn-secondary" id="btn-reset-demo-data">🔄 Reset to Demo Members</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- =========================================
+         MODALS
+         ========================================= -->
+
+    <!-- Add / Edit Member Modal -->
+    <div class="modal-overlay" id="modal-member">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="member-modal-title">Add New Gym Member</h3>
+                <button class="modal-close-btn" onclick="window.gymApp.closeModal('modal-member')">&times;</button>
+            </div>
+            <form id="member-form">
+                <div class="modal-body">
+                    <input type="hidden" id="form-member-id">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Full Name <span class="required">*</span></label>
+                            <input type="text" id="form-name" class="form-input" required placeholder="e.g. Alex Morgan">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">Mobile Number (For 3-Day Expiry Reminders) <span class="required">*</span></label>
+                            <input type="tel" id="form-mobile" class="form-input" required placeholder="e.g. +1 9876543210 or 9876543210">
+                            <span style="font-size: 11px; color: var(--text-muted);">Used for automated WhatsApp & SMS reminders.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="form-email" class="form-input" placeholder="alex@example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select id="form-gender" class="form-select">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Membership Plan <span class="required">*</span></label>
+                            <select id="form-plan" class="form-select" required>
+                                <option value="1 Month">1 Month (Monthly Basic)</option>
+                                <option value="3 Months" selected>3 Months (Quarterly Standard)</option>
+                                <option value="6 Months">6 Months (Half-Yearly Pro)</option>
+                                <option value="12 Months">12 Months (Annual VIP)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Amount Paid ($ / ₹) <span class="required">*</span></label>
+                            <input type="number" id="form-amount" class="form-input" required value="120">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Join / Start Date <span class="required">*</span></label>
+                            <input type="date" id="form-join-date" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Membership Expiry Date <span class="required">*</span></label>
+                            <input type="date" id="form-expiry-date" class="form-input" required>
+                            <span style="font-size: 11px; color: var(--text-muted);">Auto-calculated from plan duration.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Payment Mode</label>
+                            <select id="form-payment-mode" class="form-select">
+                                <option value="Cash">Cash</option>
+                                <option value="UPI / Online">UPI / Online</option>
+                                <option value="Card">Credit / Debit Card</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Emergency Contact Phone</label>
+                            <input type="tel" id="form-emergency" class="form-input" placeholder="Optional emergency contact">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">Health Goals / Trainer Notes</label>
+                            <textarea id="form-notes" class="form-textarea" rows="2" placeholder="e.g. Weight loss, hypertrophy, knee precautions..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="window.gymApp.closeModal('modal-member')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-member">Save Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Renewal Modal -->
+    <div class="modal-overlay" id="modal-renew">
+        <div class="modal-dialog" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Renew Membership</h3>
+                <button class="modal-close-btn" onclick="window.gymApp.closeModal('modal-renew')">&times;</button>
+            </div>
+            <form id="renew-form">
+                <div class="modal-body">
+                    <input type="hidden" id="renew-member-id">
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px;">
+                        <div style="font-weight: 700; font-size: 15px;" id="renew-member-name">Member Name</div>
+                        <div style="font-size: 12px; color: var(--text-muted);" id="renew-member-phone">Phone: </div>
+                        <div style="font-size: 12px; color: var(--amber); margin-top: 4px;" id="renew-current-expiry">Current Expiry: </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label">Select Renewal Duration</label>
+                        <select id="renew-plan" class="form-select">
+                            <option value="1 Month">+ 1 Month Extension</option>
+                            <option value="3 Months" selected>+ 3 Months Extension</option>
+                            <option value="6 Months">+ 6 Months Extension</option>
+                            <option value="12 Months">+ 12 Months Extension</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label">Renewal Fee Amount</label>
+                        <input type="number" id="renew-amount" class="form-input" value="120" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">New Expiry Date</label>
+                        <input type="date" id="renew-new-expiry" class="form-input" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="window.gymApp.closeModal('modal-renew')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Renewal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Send Custom Message Modal -->
+    <div class="modal-overlay" id="modal-send-message">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">📲 Send 3-Day Expiry Reminder</h3>
+                <button class="modal-close-btn" onclick="window.gymApp.closeModal('modal-send-message')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="msg-member-id">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: var(--radius-md);">
+                    <div>
+                        <div style="font-weight: 700; font-size: 14px;" id="msg-recipient-name">Recipient Name</div>
+                        <div style="font-size: 12px; color: var(--cyan); font-family: monospace;" id="msg-recipient-phone">+1 9876543210</div>
+                    </div>
+                    <span class="badge badge-expiring" id="msg-recipient-badge">Expires in 3 Days</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label">Message Text</label>
+                    <textarea id="msg-text-content" class="form-textarea" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Select Delivery Channel</label>
+                    <div style="display: flex; gap: 10px; margin-top: 4px;">
+                        <button class="btn btn-whatsapp" id="btn-dispatch-whatsapp" style="flex: 1;">
+                            <span>📱 Open in WhatsApp</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btn-dispatch-sms" style="flex: 1;">
+                            <span>💬 Native SMS</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.gymApp.closeModal('modal-send-message')">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- Digital Payment Receipt Modal -->
+    <div class="modal-overlay" id="modal-receipt">
+        <div class="modal-dialog" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Membership Payment Receipt</h3>
+                <button class="modal-close-btn" onclick="window.gymApp.closeModal('modal-receipt')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="receipt-card" id="printable-receipt">
+                    <div class="receipt-header">
+                        <div class="receipt-title" id="receipt-gym-name">IronPulse Fitness Club</div>
+                        <div style="font-size: 11px; color: #64748b;" id="receipt-gym-address">104 Olympic Blvd, Suite 200</div>
+                        <div style="font-size: 11px; color: #64748b;" id="receipt-gym-phone">Tel: +1 (555) 234-5678</div>
+                        <div style="font-weight: 700; margin-top: 8px; font-size: 13px;">MEMBERSHIP RECEIPT</div>
+                        <div style="font-size: 11px; color: #64748b;" id="receipt-no">Receipt #: IP-2026-001</div>
+                    </div>
+
+                    <div class="receipt-row">
+                        <span>Date:</span>
+                        <span id="receipt-date">Nov 21, 2026</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Member Name:</span>
+                        <span id="receipt-member-name" style="font-weight: 700;">Alex Morgan</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Mobile No:</span>
+                        <span id="receipt-member-phone">+1 9876543210</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Membership Plan:</span>
+                        <span id="receipt-plan">3 Months (Quarterly)</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Valid Until:</span>
+                        <span id="receipt-validity" style="font-weight: 700; color: #0284c7;">Feb 21, 2027</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Payment Mode:</span>
+                        <span id="receipt-payment-mode">Cash</span>
+                    </div>
+
+                    <div class="receipt-row receipt-total">
+                        <span>Total Amount Paid:</span>
+                        <span id="receipt-total-amount" style="color: #10b981;">$120.00</span>
+                    </div>
+
+                    <div style="margin-top: 24px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                        Thank you for working out with us! Stay strong.<br>
+                        Authorized Front-Desk Stamp & Signature
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.gymApp.closeModal('modal-receipt')">Close</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Print Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
     <!-- Scripts -->
-    <script src="js/audio.js"></script>
-    <script src="js/models.js"></script>
-    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
